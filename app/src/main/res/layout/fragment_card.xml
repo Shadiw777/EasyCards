@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <RelativeLayout
+            android:id="@+id/relLayout1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <include layout="@layout/snippet_card_toolbar" />
+
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:id="@+id/relLayout2"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_below="@+id/relLayout1">
+
+            <ImageView
+                android:id="@+id/cardImage"
+                android:layout_width="200dp"
+                android:layout_height="200dp"
+                android:layout_centerHorizontal="true"
+                android:layout_marginTop="40dp" />
+
+            <TextView
+                android:id="@+id/cardName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/cardImage"
+                android:layout_marginStart="30dp"
+                android:layout_marginTop="30dp"
+                android:textColor="@android:color/black"
+                android:textSize="30sp" />
+
+
+        </RelativeLayout>
+
+    </RelativeLayout>
+
+</android.support.design.widget.CoordinatorLayout>

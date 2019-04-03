@@ -1,0 +1,15 @@
+<resources>
+    <string name="app_name">EasyCards</string>
+
+    <!-- fragment names -->
+    <string name="edit_card_fragment">EditCardFragment</string>
+    <string name="card_fragment">CardFragment</string>
+    <string name="view_card_fragment">ViewContactsFragment</string>
+    <string name="change_photo_dialog">ChangePhotoDialog</string>
+    <string name="add_card_fragment">AddCardFragment</string>
+
+    <!-- keys -->
+    <string name="card">Card</string>
+    <string name="edit_card">Edit Card</string>
+    <string name="add_card">Add Card</string>
+</resources>

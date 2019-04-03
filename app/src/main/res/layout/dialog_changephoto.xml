@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="250dp"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="10dp">
+
+
+    <TextView
+        android:id="@+id/dialogTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Change Photo"
+        android:textColor="@android:color/black"
+        android:textSize="21sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/dialogTakePhoto"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:text="Take new photo"
+        android:textColor="@android:color/black"
+        android:textSize="18sp" />
+
+    <TextView
+        android:id="@+id/dialogChoosePhoto"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:text="Choose photo from memory"
+        android:textColor="@android:color/black"
+        android:textSize="18sp" />
+
+    <RelativeLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:id="@+id/dialogCancel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:layout_marginTop="30dp"
+            android:layout_marginEnd="10dp"
+            android:layout_marginBottom="10dp"
+            android:text="CANCEL"
+            android:textColor="@android:color/black"
+            android:textSize="15sp" />
+
+    </RelativeLayout>
+
+</LinearLayout>
