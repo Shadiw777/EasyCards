@@ -12,4 +12,10 @@
     <string name="card">Card</string>
     <string name="edit_card">Edit Card</string>
     <string name="add_card">Add Card</string>
+    <string name="lbl_set_profile_photo">Set image</string>
+    <string name="lbl_take_camera_picture">Take a picture</string>
+    <string name="lbl_choose_from_gallery">Choose from gallery</string>
+    <string name="dialog_permission_title">a</string>
+    <string name="dialog_permission_message">b</string>
+    <string name="go_to_settings">c</string>
 </resources>

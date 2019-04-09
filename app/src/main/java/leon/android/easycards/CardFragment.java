@@ -42,6 +42,7 @@ public class CardFragment extends Fragment {
     private android.support.v7.widget.Toolbar toolbar;
     private Card mCard;
     private TextView mCardName;
+    private TextView mCardNumber;
     private ImageView mCardImageView;
 
     @Nullable
@@ -50,6 +51,7 @@ public class CardFragment extends Fragment {
         View rootView = inflater.inflate(R.layout.fragment_card, container, false);
         toolbar = rootView.findViewById(R.id.cardToolbar);
         mCardName = (TextView) rootView.findViewById(R.id.cardName);
+        mCardNumber = rootView.findViewById(R.id.cardNumber);
         mCardImageView = (ImageView) rootView.findViewById(R.id.cardImage);
         mCard = getCardFromBundle();
 
@@ -78,7 +80,8 @@ public class CardFragment extends Fragment {
     }
 
     private void init() {
-        mCardName.setText(mCard.getNameOfCard());
+        mCardName.setText("Name of card: " + mCard.getNameOfCard());
+        mCardNumber.setText("Number of card: " + mCard.getNumberOfCard());
         UniversalImageLoader.setImage(mCard.getImageCard(), mCardImageView, null, "");
     }
 
@@ -124,11 +127,11 @@ public class CardFragment extends Fragment {
         Cursor cursor = databaseHelper.getCardID(mCard);
 
         int cardID = -1;
-        while (cursor.moveToNext()){
+        while (cursor.moveToNext()) {
             cardID = cursor.getInt(0);
         }
 
-        if (cardID > -1){
+        if (cardID > -1) {
             init();
         } else {
             this.getArguments().clear();
@@ -141,9 +144,9 @@ public class CardFragment extends Fragment {
      *
      * @return
      */
-    private Card getCardFromBundle(){
+    private Card getCardFromBundle() {
         Bundle bundle = this.getArguments();
-        if (bundle != null){
+        if (bundle != null) {
             return bundle.getParcelable(getString(R.string.card));
         } else {
             return null;
@@ -156,7 +159,7 @@ public class CardFragment extends Fragment {
 
         try {
             mOnEditCardListener = (onEditCardListener) getActivity();
-        } catch (ClassCastException e){
+        } catch (ClassCastException e) {
             Log.e(TAG, "onAttach: ClassCastException: " + e.getMessage());
         }
     }

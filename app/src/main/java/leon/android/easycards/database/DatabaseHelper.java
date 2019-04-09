@@ -10,14 +10,15 @@ import leon.android.easycards.model.Card;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
 
-    private static final String DATABASE_NAME = "card.db";
-    private static final String TABLE_NAME = "card_table";
+    public static final String DATABASE_NAME = "card.db";
+    public static final String TABLE_NAME = "card_table";
     public static final String COL0 = "ID";
     public static final String COL1 = "NAME";
     public static final String COL2 = "CARD_IMAGE";
+    public static final String COL3 = "CARD_NUMBER";
 
     public DatabaseHelper(Context context) {
-        super(context, DATABASE_NAME, null, 1);
+        super(context, DATABASE_NAME, null, 3);
     }
 
 
@@ -27,13 +28,14 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 TABLE_NAME + " ( " +
                 COL0 + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 COL1 + " TEXT, " +
-                COL2 + " TEXT )";
+                COL2 + " TEXT, " +
+                COL3 + " TEXT )";
         db.execSQL(sql);
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int i, int i1) {
-        db.execSQL("DROP IF TABLE EXISTS " + TABLE_NAME);
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_NAME);
         onCreate(db);
     }
 
@@ -48,6 +50,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         ContentValues contentValues = new ContentValues();
         contentValues.put(COL1, card.getNameOfCard());
         contentValues.put(COL2, card.getImageCard());
+        contentValues.put(COL3, card.getNumberOfCard());
 
         long result = db.insert(TABLE_NAME, null, contentValues);
 
@@ -81,6 +84,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         ContentValues contentValues = new ContentValues();
         contentValues.put(COL1, card.getNameOfCard());
         contentValues.put(COL2, card.getImageCard());
+        contentValues.put(COL3, card.getNumberOfCard());
 
         int update = db.update(TABLE_NAME,
                 contentValues,
@@ -103,7 +107,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public Cursor getCardID(Card card) {
         SQLiteDatabase db = this.getWritableDatabase();
         String sql = "SELECT * FROM " + TABLE_NAME +
-                " WHERE " + COL1 + " = '" + card.getNameOfCard() + "'";
+                " WHERE " + COL1 + " = '" + card.getNameOfCard() + "'" +
+                " AND " + COL3 + " = '" + card.getNumberOfCard() + "'";
 
         return db.rawQuery(sql, null);
     }

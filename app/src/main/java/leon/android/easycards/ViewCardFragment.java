@@ -2,22 +2,26 @@ package leon.android.easycards;
 
 import android.content.Context;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
 import android.support.v7.widget.DividerItemDecoration;
+import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.helper.ItemTouchHelper;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.AnimationUtils;
+import android.view.animation.LayoutAnimationController;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -54,10 +58,14 @@ public class ViewCardFragment extends Fragment implements CardAdapter.OnRecycler
     private int mAppBarState;
 
     private AppBarLayout viewCardsBar, searchBar;
-    private RecyclerView mRecyclerCardView;
+    private RecyclerView mRecyclerView;
     private CardAdapter mAdapter;
     private EditText mSearchCards;
-    private List<Card> cards = new ArrayList<>();
+    private List<Card> mCards = new ArrayList<>();
+    private Card mCard;
+
+    int[] animationList = {R.anim.layout_animation_up_to_down, R.anim.layout_animation_right_to_left, R.anim.layout_animation_down_to_up, R.anim.layout_animation_left_to_right};
+    int i = 0;
 
     @Nullable
     @Override
@@ -65,7 +73,7 @@ public class ViewCardFragment extends Fragment implements CardAdapter.OnRecycler
         View rootView = inflater.inflate(R.layout.fragment_view_cards, container, false);
         viewCardsBar = (AppBarLayout) rootView.findViewById(R.id.viewCardToolbar);
         searchBar = (AppBarLayout) rootView.findViewById(R.id.searchToolbar);
-        mRecyclerCardView = rootView.findViewById(R.id.cardRecyclerView);
+        mRecyclerView = rootView.findViewById(R.id.cardRecyclerView);
         mSearchCards = rootView.findViewById(R.id.etSearchCards);
 
         setAppBarState(STANDARD_APPBAR);
@@ -105,6 +113,29 @@ public class ViewCardFragment extends Fragment implements CardAdapter.OnRecycler
     }
 
 
+    //TODO Тестирование анимаций
+    @Override
+    public void onStart() {
+        super.onStart();
+        if (i < animationList.length - 1) {
+            i++;
+        } else {
+            i = 0;
+        }
+        runAnimationAgain();
+    }
+
+    private void runAnimationAgain() {
+
+        final LayoutAnimationController controller =
+                AnimationUtils.loadLayoutAnimation(getActivity(), animationList[i]);
+
+        mRecyclerView.setLayoutAnimation(controller);
+        mAdapter.notifyDataSetChanged();
+        mRecyclerView.scheduleLayoutAnimation();
+
+    }
+
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
@@ -118,38 +149,37 @@ public class ViewCardFragment extends Fragment implements CardAdapter.OnRecycler
     }
 
     private void initRecyclerView() {
-        LinearLayoutManager mLayoutManager = new LinearLayoutManager(getActivity());
-        mRecyclerCardView.setLayoutManager(mLayoutManager);
-        mRecyclerCardView.setHasFixedSize(true);
+        // LinearLayoutManager mLayoutManager = new LinearLayoutManager(getActivity());
+        GridLayoutManager mLayoutManager = new GridLayoutManager(getActivity(), 2, GridLayoutManager.VERTICAL, false);
+        mRecyclerView.setLayoutManager(mLayoutManager);
+        mRecyclerView.setHasFixedSize(true);
         List cards = getAllCards();
         mAdapter = new CardAdapter(getActivity(), cards, "", this);
-        mRecyclerCardView.setAdapter(mAdapter);
-
-        DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(mRecyclerCardView.getContext(),
-                mLayoutManager.getOrientation());
-        mRecyclerCardView.addItemDecoration(dividerItemDecoration);
+        mRecyclerView.setAdapter(mAdapter);
 
     }
 
+    //TODO Не выводит 1 карточку если создать
     private List<Card> getAllCards() {
-        cards = new ArrayList<>();
+        mCards = new ArrayList<>();
         DatabaseHelper databaseHelper = new DatabaseHelper(getActivity());
         Cursor cursor = databaseHelper.getAllCards();
 
         //iterate through all the rows contained in the database
         if (!cursor.moveToNext()) {
-            Toast.makeText(getActivity(), "There are no contacts to show", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getActivity(), "There are no cards to show", Toast.LENGTH_SHORT).show();
         }
         while (cursor.moveToNext()) {
-            cards.add(new Card(
+            mCards.add(new Card(
                     cursor.getString(1),//name
-                    cursor.getString(2)// image
+                    cursor.getString(2),// image
+                    cursor.getString(3)// number
             ));
         }
 
 
         //sort the arraylist based on the contact name
-        Collections.sort(cards, new Comparator<Card>() {
+        Collections.sort(mCards, new Comparator<Card>() {
             @Override
             public int compare(Card o1, Card o2) {
                 return o1.getNameOfCard().compareToIgnoreCase(o2.getNameOfCard());
@@ -174,13 +204,13 @@ public class ViewCardFragment extends Fragment implements CardAdapter.OnRecycler
             }
         });
 
-        return cards;
+        return mCards;
     }
 
     @Override
     public void onClickRecyclerPosition(int position) {
         Log.d(TAG, "onClick: navigating to " + getString(R.string.card_fragment));
-        mCardListener.onCardSelected(cards.get(position));
+        mCardListener.onCardSelected(mCards.get(position));
     }
 
     /**
@@ -236,4 +266,6 @@ public class ViewCardFragment extends Fragment implements CardAdapter.OnRecycler
         super.onResume();
         setAppBarState(STANDARD_APPBAR);
     }
+
+
 }

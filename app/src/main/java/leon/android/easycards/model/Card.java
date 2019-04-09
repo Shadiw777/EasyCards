@@ -7,15 +7,18 @@ public class Card implements Parcelable {
 
     private String nameOfCard;
     private String imageCard;
+    private String numberOfCard;
 
-    public Card(String nameOfCard, String imageCard) {
+    public Card(String nameOfCard, String imageCard, String numberOfCard) {
         this.nameOfCard = nameOfCard;
         this.imageCard = imageCard;
+        this.numberOfCard = numberOfCard;
     }
 
     protected Card(Parcel in){
         nameOfCard = in.readString();
         imageCard = in.readString();
+        numberOfCard = in.readString();
     }
 
     @Override
@@ -27,6 +30,7 @@ public class Card implements Parcelable {
     public void writeToParcel(Parcel parcel, int i) {
         parcel.writeString(nameOfCard);
         parcel.writeString(imageCard);
+        parcel.writeString(numberOfCard);
     }
 
     public static final Creator<Card> CREATOR = new Creator<Card>() {
@@ -55,5 +59,13 @@ public class Card implements Parcelable {
 
     public void setImageCard(String imageCard) {
         this.imageCard = imageCard;
+    }
+
+    public String getNumberOfCard() {
+        return numberOfCard;
+    }
+
+    public void setNumberOfCard(String numberOfCard) {
+        this.numberOfCard = numberOfCard;
     }
 }

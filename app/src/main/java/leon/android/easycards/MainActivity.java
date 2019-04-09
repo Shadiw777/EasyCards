@@ -2,12 +2,16 @@ package leon.android.easycards;
 
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.transition.Transition;
+import android.transition.TransitionInflater;
 import android.util.Log;
+import android.widget.ImageView;
 
 import com.nostra13.universalimageloader.core.ImageLoader;
 
@@ -49,15 +53,42 @@ public class MainActivity extends AppCompatActivity implements
                 + getString(R.string.view_card_fragment)
                 + " " + card.getNameOfCard());
 
-        CardFragment fragment = new CardFragment();
+        CardFragment cardFragment = new CardFragment();
+        ViewCardFragment viewCardFragment = new ViewCardFragment();
+
         Bundle args = new Bundle();
         args.putParcelable(getString(R.string.card), card);
-        fragment.setArguments(args);
+        cardFragment.setArguments(args);
 
-        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-        transaction.replace(R.id.fragment_container, fragment);
-        transaction.addToBackStack(getString(R.string.card_fragment));
-        transaction.commit();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            // Inflate transitions to apply
+            Transition changeTransform = TransitionInflater.from(this).
+                    inflateTransition(R.transition.change_image_transform);
+            Transition explodeTransform = TransitionInflater.from(this).
+                    inflateTransition(android.R.transition.explode);
+
+            // Setup exit transition on first fragment
+            viewCardFragment.setSharedElementReturnTransition(changeTransform);
+            viewCardFragment.setExitTransition(explodeTransform);
+
+            // Setup enter transition on second fragment
+            cardFragment.setSharedElementEnterTransition(changeTransform);
+            cardFragment.setEnterTransition(explodeTransform);
+
+            // Find the shared element (in Fragment A)
+            ImageView cardImage = (ImageView) findViewById(R.id.cardImage);
+
+            FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+            transaction.replace(R.id.fragment_container, cardFragment);
+            transaction.addToBackStack(getString(R.string.card_fragment));
+            transaction.addSharedElement(cardImage, "profile");
+            transaction.commit();
+        } else {
+            FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+            transaction.replace(R.id.fragment_container, cardFragment);
+            transaction.addToBackStack(getString(R.string.card_fragment));
+            transaction.commit();
+        }
     }
 
     @Override
@@ -90,7 +121,7 @@ public class MainActivity extends AppCompatActivity implements
         // replace what ever is in the fragment_container view with this fragment,
         // amd add the transaction to the back stack so the user can navigate back
         transaction.replace(R.id.fragment_container, fragment);
-       // transaction.addToBackStack(null);
+        // transaction.addToBackStack(null);
         transaction.commit();
     }
 

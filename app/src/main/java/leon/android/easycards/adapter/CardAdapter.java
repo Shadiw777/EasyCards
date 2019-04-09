@@ -1,8 +1,10 @@
 package leon.android.easycards.adapter;
 
+import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityOptionsCompat;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -45,13 +47,12 @@ public class CardAdapter extends RecyclerView.Adapter<CardAdapter.ViewHolder> {
     public CardAdapter.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int i) {
         View rootView = LayoutInflater.from(mContext).inflate(R.layout.layout_card_list, parent, false);
         return new ViewHolder(rootView, onRecyclerListener);
-        // return new ViewHolder(LayoutInflater.from(mContext).inflate(R.layout.layout_card_list, parent, false));
     }
 
     @Override
     public void onBindViewHolder(@NonNull final CardAdapter.ViewHolder holder, int position) {
         Card card = mCards.get(position);
-        holder.mCardName.setText(card.getNameOfCard());
+//        holder.mCardName.setText(card.getNameOfCard());
 
         ImageLoader imageLoader = ImageLoader.getInstance();
 
