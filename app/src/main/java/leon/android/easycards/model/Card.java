@@ -9,6 +9,9 @@ public class Card implements Parcelable {
     private String imageCard;
     private String numberOfCard;
 
+    public Card() {
+    }
+
     public Card(String nameOfCard, String imageCard, String numberOfCard) {
         this.nameOfCard = nameOfCard;
         this.imageCard = imageCard;

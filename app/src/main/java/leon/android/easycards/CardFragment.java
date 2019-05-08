@@ -2,6 +2,7 @@ package leon.android.easycards;
 
 import android.content.Context;
 import android.database.Cursor;
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -20,6 +21,11 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.Toolbar;
 
+import com.edwardvanraak.materialbarcodescanner.MaterialBarcodeScanner;
+import com.edwardvanraak.materialbarcodescanner.MaterialBarcodeScannerBuilder;
+import com.google.android.gms.vision.barcode.Barcode;
+
+import leon.android.easycards.barcode.BarcodeEncoder;
 import leon.android.easycards.database.DatabaseHelper;
 import leon.android.easycards.model.Card;
 import leon.android.easycards.utils.UniversalImageLoader;
@@ -44,6 +50,7 @@ public class CardFragment extends Fragment {
     private TextView mCardName;
     private TextView mCardNumber;
     private ImageView mCardImageView;
+    private ImageView imageViewBarcode;
 
     @Nullable
     @Override
@@ -54,6 +61,8 @@ public class CardFragment extends Fragment {
         mCardNumber = rootView.findViewById(R.id.cardNumber);
         mCardImageView = (ImageView) rootView.findViewById(R.id.cardImage);
         mCard = getCardFromBundle();
+
+        imageViewBarcode = rootView.findViewById(R.id.imageViewBarcode128);
 
         ((AppCompatActivity) getActivity()).setSupportActionBar(toolbar);
         setHasOptionsMenu(true);
@@ -76,6 +85,8 @@ public class CardFragment extends Fragment {
             }
         });
 
+        createBarCodeImage();
+
         return rootView;
     }
 
@@ -83,6 +94,11 @@ public class CardFragment extends Fragment {
         mCardName.setText("Name of card: " + mCard.getNameOfCard());
         mCardNumber.setText("Number of card: " + mCard.getNumberOfCard());
         UniversalImageLoader.setImage(mCard.getImageCard(), mCardImageView, null, "");
+    }
+
+    private void createBarCodeImage() {
+        Bitmap bitmap = BarcodeEncoder.genBarcode128(mCard.getNumberOfCard(), 550, 222);
+        imageViewBarcode.setImageBitmap(bitmap);
     }
 
     @Override

@@ -18,7 +18,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String COL3 = "CARD_NUMBER";
 
     public DatabaseHelper(Context context) {
-        super(context, DATABASE_NAME, null, 3);
+        super(context, DATABASE_NAME, null, 6);
     }
 
 
@@ -116,5 +116,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public Integer deleteCard(int id) {
         SQLiteDatabase db = this.getWritableDatabase();
         return db.delete(TABLE_NAME, "ID = ?", new String[]{String.valueOf(id)});
+    }
+
+    public Cursor deleteAllCards(){
+        SQLiteDatabase db = this.getWritableDatabase();
+        return db.rawQuery("DROP TABLE " + TABLE_NAME, null);
     }
 }

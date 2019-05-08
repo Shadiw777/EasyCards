@@ -8,7 +8,10 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.view.ViewPager;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
@@ -17,6 +20,7 @@ import android.support.v7.widget.helper.ItemTouchHelper;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -34,6 +38,7 @@ import java.util.List;
 import java.util.Locale;
 
 import leon.android.easycards.adapter.CardAdapter;
+import leon.android.easycards.adapter.TabsAdapter;
 import leon.android.easycards.database.DatabaseHelper;
 import leon.android.easycards.model.Card;
 
@@ -66,6 +71,7 @@ public class ViewCardFragment extends Fragment implements CardAdapter.OnRecycler
 
     int[] animationList = {R.anim.layout_animation_up_to_down, R.anim.layout_animation_right_to_left, R.anim.layout_animation_down_to_up, R.anim.layout_animation_left_to_right};
     int i = 0;
+
 
     @Nullable
     @Override
@@ -109,9 +115,43 @@ public class ViewCardFragment extends Fragment implements CardAdapter.OnRecycler
         });
 
 
+
+//        TabLayout tabLayout = rootView.findViewById(R.id.tab_layout);
+//        tabLayout.addTab(tabLayout.newTab().setText("1"));
+//        tabLayout.addTab(tabLayout.newTab().setText("2"));
+//        tabLayout.setTabGravity(TabLayout.GRAVITY_FILL);
+//
+//        ViewPager viewPager = rootView.findViewById(R.id.view_pager);
+//        TabsAdapter tabsAdapter = new TabsAdapter(getActivity().getSupportFragmentManager(), tabLayout.getTabCount());
+//
+//        viewPager.setAdapter(tabsAdapter);
+//        viewPager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(tabLayout));
+//        tabLayout.setOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+//            @Override
+//            public void onTabSelected(TabLayout.Tab tab) {
+//                viewPager.setCurrentItem(tab.getPosition());
+//            }
+//
+//            @Override
+//            public void onTabUnselected(TabLayout.Tab tab) {
+//
+//            }
+//
+//            @Override
+//            public void onTabReselected(TabLayout.Tab tab) {
+//
+//            }
+//        });
+
         return rootView;
     }
 
+    @Override
+    public void onStop() {
+        super.onStop();
+        DatabaseHelper databaseHelper = new DatabaseHelper(getActivity());
+        databaseHelper.close();
+    }
 
     //TODO Тестирование анимаций
     @Override
@@ -153,38 +193,40 @@ public class ViewCardFragment extends Fragment implements CardAdapter.OnRecycler
         GridLayoutManager mLayoutManager = new GridLayoutManager(getActivity(), 2, GridLayoutManager.VERTICAL, false);
         mRecyclerView.setLayoutManager(mLayoutManager);
         mRecyclerView.setHasFixedSize(true);
-        List cards = getAllCards();
+        List<Card> cards = getAllCards();
         mAdapter = new CardAdapter(getActivity(), cards, "", this);
         mRecyclerView.setAdapter(mAdapter);
 
     }
 
-    //TODO Не выводит 1 карточку если создать
     private List<Card> getAllCards() {
         mCards = new ArrayList<>();
-        DatabaseHelper databaseHelper = new DatabaseHelper(getActivity());
-        Cursor cursor = databaseHelper.getAllCards();
+       DatabaseHelper databaseHelper = new DatabaseHelper(getActivity());
 
-        //iterate through all the rows contained in the database
-        if (!cursor.moveToNext()) {
-            Toast.makeText(getActivity(), "There are no cards to show", Toast.LENGTH_SHORT).show();
-        }
-        while (cursor.moveToNext()) {
-            mCards.add(new Card(
-                    cursor.getString(1),//name
-                    cursor.getString(2),// image
-                    cursor.getString(3)// number
-            ));
+        SQLiteDatabase mDatabase;
+        mDatabase = databaseHelper.getWritableDatabase();
+        Cursor c = mDatabase.query(DatabaseHelper.TABLE_NAME, null, null, null, null, null, null);
+
+        if (c.moveToFirst()) {
+            int idCol1 = c.getColumnIndex(DatabaseHelper.COL1);
+            int idCol2 = c.getColumnIndex(DatabaseHelper.COL2);
+            int idCol3 = c.getColumnIndex(DatabaseHelper.COL3);
+
+            do {
+                Card card = new Card();
+                card.setNameOfCard(c.getString(idCol1));
+                card.setImageCard(c.getString(idCol2));
+                card.setNumberOfCard(c.getString(idCol3));
+
+                mCards.add(card);
+            } while (c.moveToNext());
         }
 
+
+        c.close();
 
         //sort the arraylist based on the contact name
-        Collections.sort(mCards, new Comparator<Card>() {
-            @Override
-            public int compare(Card o1, Card o2) {
-                return o1.getNameOfCard().compareToIgnoreCase(o2.getNameOfCard());
-            }
-        });
+        Collections.sort(mCards, (o1, o2) -> o1.getNameOfCard().compareToIgnoreCase(o2.getNameOfCard()));
 
         mSearchCards.addTextChangedListener(new TextWatcher() {
             @Override
@@ -216,7 +258,7 @@ public class ViewCardFragment extends Fragment implements CardAdapter.OnRecycler
     /**
      * Initiates the appbar state toggle
      */
-    private void toggleToolBarState() {
+    public void toggleToolBarState() {
         Log.d(TAG, "toggleToolBarState: toggling AppBarState.");
         if (mAppBarState == STANDARD_APPBAR) {
             setAppBarState(SEARCH_APPBAR);

@@ -39,6 +39,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
+import leon.android.easycards.barcode.BarcodeEncoder;
 import leon.android.easycards.database.DatabaseHelper;
 import leon.android.easycards.model.Card;
 
@@ -59,6 +60,7 @@ public class AddCardFragment extends Fragment implements OnPhotoReceivedListener
     private String mSelectedImagePath;
 
     private Barcode barcodeResult;
+    private ImageView imageViewBarcode;
 
 
     public static final int REQUEST_IMAGE = 100;
@@ -72,6 +74,8 @@ public class AddCardFragment extends Fragment implements OnPhotoReceivedListener
         mCardImageView = (ImageView) rootView.findViewById(R.id.cardImage);
         mCardImageBarCode = rootView.findViewById(R.id.imageViewCardNumber);
         toolbar = (Toolbar) rootView.findViewById(R.id.editCardToolbar);
+
+        imageViewBarcode = rootView.findViewById(R.id.imageViewBarcode128);
 
         mSelectedImagePath = null;
 
@@ -178,12 +182,11 @@ public class AddCardFragment extends Fragment implements OnPhotoReceivedListener
                 .withBackfacingCamera()
                 .withCenterTracker()
                 .withText("Scanning...")
-                .withResultListener(new MaterialBarcodeScanner.OnResultListener() {
-                    @Override
-                    public void onResult(Barcode barcode) {
-                        barcodeResult = barcode;
-                        mCardNumber.setText(barcode.rawValue);
-                    }
+                .withResultListener(barcode -> {
+                    barcodeResult = barcode;
+                    mCardNumber.setText(barcode.rawValue);
+                    Bitmap bitmap = BarcodeEncoder.genBarcode128(barcode.rawValue, 550, 222);
+                    imageViewBarcode.setImageBitmap(bitmap);
                 })
                 .build();
         materialBarcodeScanner.startScan();
@@ -314,6 +317,5 @@ public class AddCardFragment extends Fragment implements OnPhotoReceivedListener
         intent.setData(uri);
         startActivityForResult(intent, 101);
     }
-
 
 }
