@@ -62,18 +62,26 @@ public class EditCardFragment extends Fragment implements OnPhotoReceivedListene
     private EditText mCardNumber;
     private ImageView mCardImageView;
     private ImageView mCardImageBarCode;
+    private ImageView mImageViewBackArrow;
+    private ImageView mImageViewCamera;
+    private ImageView mConfirmNewContact;
     private Toolbar toolbar;
     private String mSelectedImagePath;
     private Barcode barcodeResult;
+
+    AddCardFragment addCardFragment = new AddCardFragment();
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_edit_card, container, false);
-        mCardName = (EditText) rootView.findViewById(R.id.etCardName);
-        mCardNumber = (EditText) rootView.findViewById(R.id.etCardNumber);
-        mCardImageView = (ImageView) rootView.findViewById(R.id.cardImage);
-        mCardImageBarCode = (ImageView) rootView.findViewById(R.id.imageViewCardNumber);
+        mCardName = rootView.findViewById(R.id.etCardName);
+        mCardNumber = rootView.findViewById(R.id.etCardNumber);
+        mCardImageView = rootView.findViewById(R.id.cardImage);
+        mCardImageBarCode = rootView.findViewById(R.id.imageViewCardNumber);
+        mImageViewBackArrow = rootView.findViewById(R.id.imageViewBackArrow);
+        mImageViewCamera = rootView.findViewById(R.id.imageViewCamera);
+        mConfirmNewContact = rootView.findViewById(R.id.imageViewCheckmark);
         toolbar = rootView.findViewById(R.id.editCardToolbar);
 
 
@@ -95,19 +103,14 @@ public class EditCardFragment extends Fragment implements OnPhotoReceivedListene
         }
 
         //navigation for the backarrow
-        ImageView imageViewBackArrow = (ImageView) rootView.findViewById(R.id.imageViewBackArrow);
-        imageViewBackArrow.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Log.d(TAG, "onClick: clicked back arrow.");
-                //remove previous fragment from the backstack (therefore navigating back)
-                getActivity().getSupportFragmentManager().popBackStack();
-            }
+        mImageViewBackArrow.setOnClickListener(v -> {
+            Log.d(TAG, "onClick: clicked back arrow.");
+            //remove previous fragment from the backstack (therefore navigating back)
+            getActivity().getSupportFragmentManager().popBackStack();
         });
 
         // save changes to the contact
-        ImageView imageViewCheckmark = (ImageView) rootView.findViewById(R.id.imageViewCheckmark);
-        imageViewCheckmark.setOnClickListener(new View.OnClickListener() {
+        mConfirmNewContact.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Log.d(TAG, "onClick: saving the edited contact.");
@@ -133,6 +136,7 @@ public class EditCardFragment extends Fragment implements OnPhotoReceivedListene
 
                         databaseHelper.updateCard(mCard, cardID);
                         Toast.makeText(getActivity(), "Contact Updated", Toast.LENGTH_SHORT).show();
+                        getActivity().getSupportFragmentManager().popBackStack();
                     } else {
                         Toast.makeText(getActivity(), "Database Error", Toast.LENGTH_SHORT).show();
                     }
@@ -140,40 +144,20 @@ public class EditCardFragment extends Fragment implements OnPhotoReceivedListene
             }
         });
 
+        mCardImageView.setOnClickListener(v -> {
+            listenerToPhoto();
+        });
+
         // initiate the dialog box for choosing an image
-        ImageView imageViewCamera = (ImageView) rootView.findViewById(R.id.imageViewCamera);
-        imageViewCamera.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-                Dexter.withActivity(getActivity())
-                        .withPermissions(Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                        .withListener(new MultiplePermissionsListener() {
-                            @Override
-                            public void onPermissionsChecked(MultiplePermissionsReport report) {
-                                if (report.areAllPermissionsGranted()) {
-                                    showImagePickerOptions();
-                                    Toast.makeText(getActivity(), "1", Toast.LENGTH_SHORT).show();
-                                }
-
-                                if (report.isAnyPermissionPermanentlyDenied()) {
-                                    showSettingsDialog();
-                                }
-                            }
-
-                            @Override
-                            public void onPermissionRationaleShouldBeShown(List<PermissionRequest> permissions, PermissionToken token) {
-                                token.continuePermissionRequest();
-                            }
-                        }).check();
-            }
+        mImageViewCamera.setOnClickListener(v -> {
+            listenerToPhoto();
         });
 
 
         mCardImageBarCode.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                startScan();
+                buildBarcode();
             }
         });
 
@@ -185,7 +169,29 @@ public class EditCardFragment extends Fragment implements OnPhotoReceivedListene
         return rootView;
     }
 
-    private void startScan() {
+    private void listenerToPhoto() {
+        Dexter.withActivity(getActivity())
+                .withPermissions(Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                .withListener(new MultiplePermissionsListener() {
+                    @Override
+                    public void onPermissionsChecked(MultiplePermissionsReport report) {
+                        if (report.areAllPermissionsGranted()) {
+                            showImagePickerOptions();
+                        }
+
+                        if (report.isAnyPermissionPermanentlyDenied()) {
+                            addCardFragment.showSettingsDialog();
+                        }
+                    }
+
+                    @Override
+                    public void onPermissionRationaleShouldBeShown(List<PermissionRequest> permissions, PermissionToken token) {
+                        token.continuePermissionRequest();
+                    }
+                }).check();
+    }
+
+    private void buildBarcode() {
         /**
          * Build a new MaterialBarcodeScanner
          */
@@ -362,32 +368,6 @@ public class EditCardFragment extends Fragment implements OnPhotoReceivedListene
         intent.putExtra(ImagePickerActivity.INTENT_ASPECT_RATIO_X, 1); // 16x9, 1x1, 3:4, 3:2
         intent.putExtra(ImagePickerActivity.INTENT_ASPECT_RATIO_Y, 1);
         startActivityForResult(intent, REQUEST_IMAGE);
-    }
-
-    /**
-     * Showing Alert Dialog with Settings option
-     * Navigates user to app settings
-     * NOTE: Keep proper title and message depending on your app
-     */
-    private void showSettingsDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-        builder.setTitle(getString(R.string.dialog_permission_title));
-        builder.setMessage(getString(R.string.dialog_permission_message));
-        builder.setPositiveButton(getString(R.string.go_to_settings), (dialog, which) -> {
-            dialog.cancel();
-            openSettings();
-        });
-        builder.setNegativeButton(getString(android.R.string.cancel), (dialog, which) -> dialog.cancel());
-        builder.show();
-
-    }
-
-    // navigating user to app settings
-    private void openSettings() {
-        Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
-        Uri uri = Uri.fromParts("package", getActivity().getPackageName(), null);
-        intent.setData(uri);
-        startActivityForResult(intent, 101);
     }
 
 }

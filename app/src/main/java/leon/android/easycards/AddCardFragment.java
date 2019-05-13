@@ -4,6 +4,7 @@ import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.media.Image;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -56,6 +57,9 @@ public class AddCardFragment extends Fragment implements OnPhotoReceivedListener
     private EditText mCardNumber;
     private ImageView mCardImageView;
     private ImageView mCardImageBarCode;
+    private ImageView mImageViewBackArrow;
+    private ImageView mImageViewCamera;
+    private ImageView mConfirmNewContact;
     private Toolbar toolbar;
     private String mSelectedImagePath;
 
@@ -69,12 +73,14 @@ public class AddCardFragment extends Fragment implements OnPhotoReceivedListener
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_add_card, container, false);
-        mCardName = (EditText) rootView.findViewById(R.id.etCardName);
+        mCardName = rootView.findViewById(R.id.etCardName);
         mCardNumber = rootView.findViewById(R.id.etCardNumber);
-        mCardImageView = (ImageView) rootView.findViewById(R.id.cardImage);
+        mCardImageView = rootView.findViewById(R.id.cardImage);
         mCardImageBarCode = rootView.findViewById(R.id.imageViewCardNumber);
-        toolbar = (Toolbar) rootView.findViewById(R.id.editCardToolbar);
-
+        mImageViewBackArrow = rootView.findViewById(R.id.imageViewBackArrow);
+        mImageViewCamera = rootView.findViewById(R.id.imageViewCamera);
+        mConfirmNewContact = rootView.findViewById(R.id.imageViewCheckmark);
+        toolbar = rootView.findViewById(R.id.editCardToolbar);
         imageViewBarcode = rootView.findViewById(R.id.imageViewBarcode128);
 
         mSelectedImagePath = null;
@@ -95,72 +101,39 @@ public class AddCardFragment extends Fragment implements OnPhotoReceivedListener
 
 
         //navigation for the backarrow
-        ImageView imageViewBackArrow = (ImageView) rootView.findViewById(R.id.imageViewBackArrow);
-        imageViewBackArrow.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Log.d(TAG, "onClick: clicked back arrow.");
-                //remove previous fragment from the backstack (therefore navigating back)
-                getActivity().getSupportFragmentManager().popBackStack();
-            }
+        mImageViewBackArrow.setOnClickListener(v -> {
+            Log.d(TAG, "onClick: clicked back arrow.");
+            //remove previous fragment from the backstack (therefore navigating back)
+            getActivity().getSupportFragmentManager().popBackStack();
+        });
+
+        mCardImageView.setOnClickListener(v -> {
+            listenerToPhoto();
         });
 
         // initiate the dialog box for choosing an image
-        ImageView imageViewCamera = (ImageView) rootView.findViewById(R.id.imageViewCamera);
-        imageViewCamera.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Dexter.withActivity(getActivity())
-                        .withPermissions(Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                        .withListener(new MultiplePermissionsListener() {
-                            @Override
-                            public void onPermissionsChecked(MultiplePermissionsReport report) {
-                                if (report.areAllPermissionsGranted()) {
-                                    showImagePickerOptions();
-                                }
+        mImageViewCamera.setOnClickListener(v -> listenerToPhoto());
 
-                                if (report.isAnyPermissionPermanentlyDenied()) {
-                                    showSettingsDialog();
-                                }
-                            }
+        //set onclicklistenre to the 'checkmark' icon for saving a card
+        mConfirmNewContact.setOnClickListener(v -> {
+            Log.d(TAG, "onClick: attempting to save new contact.");
+            if (checkStringIfNull(mCardName.getText().toString())) {
+                Log.d(TAG, "onClick: saving new contact. " + mCardName.getText().toString());
 
-                            @Override
-                            public void onPermissionRationaleShouldBeShown(List<PermissionRequest> permissions, PermissionToken token) {
-                                token.continuePermissionRequest();
-                            }
-                        }).check();
-            }
-        });
-
-        //set onclicklistenre to the 'checkmar' icon for saving a contact
-        ImageView confirmNewContact = (ImageView) rootView.findViewById(R.id.imageViewCheckmark);
-        confirmNewContact.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Log.d(TAG, "onClick: attempting to save new contact.");
-                if (checkStringIfNull(mCardName.getText().toString())) {
-                    Log.d(TAG, "onClick: saving new contact. " + mCardName.getText().toString());
-
-                    DatabaseHelper databaseHelper = new DatabaseHelper(getActivity());
-                    Card card = new Card(mCardName.getText().toString(),
-                            mSelectedImagePath, mCardNumber.getText().toString());
-                    if (databaseHelper.addCard(card)) {
-                        Toast.makeText(getActivity(), "Card Saved", Toast.LENGTH_SHORT).show();
-                        getActivity().getSupportFragmentManager().popBackStack();
-                    } else {
-                        Toast.makeText(getActivity(), "Error Saving", Toast.LENGTH_SHORT).show();
-                    }
+                DatabaseHelper databaseHelper = new DatabaseHelper(getActivity());
+                Card card = new Card(mCardName.getText().toString(),
+                        mSelectedImagePath, mCardNumber.getText().toString());
+                if (databaseHelper.addCard(card)) {
+                    Toast.makeText(getActivity(), "Card Saved", Toast.LENGTH_SHORT).show();
+                    getActivity().getSupportFragmentManager().popBackStack();
+                } else {
+                    Toast.makeText(getActivity(), "Error Saving", Toast.LENGTH_SHORT).show();
                 }
-
             }
+
         });
 
-        mCardImageBarCode.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-            startScan();
-            }
-        });
+        mCardImageBarCode.setOnClickListener(view -> startScan());
 
         // Clearing older images from cache directory
         // don't call this line if you want to choose multiple images in the same activity
@@ -170,6 +143,27 @@ public class AddCardFragment extends Fragment implements OnPhotoReceivedListener
         return rootView;
     }
 
+    private void listenerToPhoto() {
+        Dexter.withActivity(getActivity())
+                .withPermissions(Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                .withListener(new MultiplePermissionsListener() {
+                    @Override
+                    public void onPermissionsChecked(MultiplePermissionsReport report) {
+                        if (report.areAllPermissionsGranted()) {
+                            showImagePickerOptions();
+                        }
+
+                        if (report.isAnyPermissionPermanentlyDenied()) {
+                            showSettingsDialog();
+                        }
+                    }
+
+                    @Override
+                    public void onPermissionRationaleShouldBeShown(List<PermissionRequest> permissions, PermissionToken token) {
+                        token.continuePermissionRequest();
+                    }
+                }).check();
+    }
 
     private void startScan() {
         /**
@@ -292,12 +286,8 @@ public class AddCardFragment extends Fragment implements OnPhotoReceivedListener
         startActivityForResult(intent, REQUEST_IMAGE);
     }
 
-    /**
-     * Showing Alert Dialog with Settings option
-     * Navigates user to app settings
-     * NOTE: Keep proper title and message depending on your app
-     */
-    private void showSettingsDialog() {
+
+    public void showSettingsDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         builder.setTitle(getString(R.string.dialog_permission_title));
         builder.setMessage(getString(R.string.dialog_permission_message));
@@ -311,7 +301,7 @@ public class AddCardFragment extends Fragment implements OnPhotoReceivedListener
     }
 
     // navigating user to app settings
-    private void openSettings() {
+    public void openSettings() {
         Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
         Uri uri = Uri.fromParts("package", getActivity().getPackageName(), null);
         intent.setData(uri);

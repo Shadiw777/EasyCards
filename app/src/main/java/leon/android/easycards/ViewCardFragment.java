@@ -8,19 +8,12 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.view.ViewPager;
-import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.GridLayoutManager;
-import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.helper.ItemTouchHelper;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
-import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -29,21 +22,18 @@ import android.view.animation.LayoutAnimationController;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 
 import leon.android.easycards.adapter.CardAdapter;
-import leon.android.easycards.adapter.TabsAdapter;
 import leon.android.easycards.database.DatabaseHelper;
 import leon.android.easycards.model.Card;
 
 public class ViewCardFragment extends Fragment implements CardAdapter.OnRecyclerListener {
-    private static final String TAG = "ViewContactsFragment";
+    private static final String TAG = "ViewCardFragment";
 
     public interface onCardSelectedListener {
         public void onCardSelected(Card card);
@@ -87,61 +77,24 @@ public class ViewCardFragment extends Fragment implements CardAdapter.OnRecycler
         initRecyclerView();
 
         // navigate to add contacts fragment
-        FloatingActionButton fab = (FloatingActionButton) rootView.findViewById(R.id.fabAddContact);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Log.d(TAG, "onClick: clicked fab.");
-                mOnAddCard.onAddCard();
-            }
+        FloatingActionButton fab = rootView.findViewById(R.id.fabAddContact);
+        fab.setOnClickListener(v -> {
+            Log.d(TAG, "onClick: clicked fab.");
+            mOnAddCard.onAddCard();
         });
 
-        ImageView imageViewSearchIcon = (ImageView) rootView.findViewById(R.id.imageViewSearchIcon);
-        imageViewSearchIcon.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Log.d(TAG, "onClick: clicked search icon.");
-                toggleToolBarState();
-            }
+        ImageView imageViewSearchIcon = rootView.findViewById(R.id.imageViewSearchIcon);
+        imageViewSearchIcon.setOnClickListener(v -> {
+            Log.d(TAG, "onClick: clicked search icon.");
+            toggleToolBarState();
         });
 
-        ImageView imageViewBackArrow = (ImageView) rootView.findViewById(R.id.imageViewBackArrow);
-        imageViewBackArrow.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Log.d(TAG, "onClick: clicked back arrow.");
-                toggleToolBarState();
-            }
+        ImageView imageViewBackArrow = rootView.findViewById(R.id.imageViewBackArrow);
+        imageViewBackArrow.setOnClickListener(v -> {
+            Log.d(TAG, "onClick: clicked back arrow.");
+            toggleToolBarState();
         });
 
-
-
-//        TabLayout tabLayout = rootView.findViewById(R.id.tab_layout);
-//        tabLayout.addTab(tabLayout.newTab().setText("1"));
-//        tabLayout.addTab(tabLayout.newTab().setText("2"));
-//        tabLayout.setTabGravity(TabLayout.GRAVITY_FILL);
-//
-//        ViewPager viewPager = rootView.findViewById(R.id.view_pager);
-//        TabsAdapter tabsAdapter = new TabsAdapter(getActivity().getSupportFragmentManager(), tabLayout.getTabCount());
-//
-//        viewPager.setAdapter(tabsAdapter);
-//        viewPager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(tabLayout));
-//        tabLayout.setOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
-//            @Override
-//            public void onTabSelected(TabLayout.Tab tab) {
-//                viewPager.setCurrentItem(tab.getPosition());
-//            }
-//
-//            @Override
-//            public void onTabUnselected(TabLayout.Tab tab) {
-//
-//            }
-//
-//            @Override
-//            public void onTabReselected(TabLayout.Tab tab) {
-//
-//            }
-//        });
 
         return rootView;
     }
@@ -153,7 +106,6 @@ public class ViewCardFragment extends Fragment implements CardAdapter.OnRecycler
         databaseHelper.close();
     }
 
-    //TODO Тестирование анимаций
     @Override
     public void onStart() {
         super.onStart();
@@ -189,7 +141,6 @@ public class ViewCardFragment extends Fragment implements CardAdapter.OnRecycler
     }
 
     private void initRecyclerView() {
-        // LinearLayoutManager mLayoutManager = new LinearLayoutManager(getActivity());
         GridLayoutManager mLayoutManager = new GridLayoutManager(getActivity(), 2, GridLayoutManager.VERTICAL, false);
         mRecyclerView.setLayoutManager(mLayoutManager);
         mRecyclerView.setHasFixedSize(true);
@@ -201,7 +152,7 @@ public class ViewCardFragment extends Fragment implements CardAdapter.OnRecycler
 
     private List<Card> getAllCards() {
         mCards = new ArrayList<>();
-       DatabaseHelper databaseHelper = new DatabaseHelper(getActivity());
+        DatabaseHelper databaseHelper = new DatabaseHelper(getActivity());
 
         SQLiteDatabase mDatabase;
         mDatabase = databaseHelper.getWritableDatabase();
